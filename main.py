@@ -1,7 +1,5 @@
 ﻿import tkinter as tk
 from tkinter import ttk, messagebox
-
-
 def ejecutar_lru():
     try:
         cantidad_marcos = int(entry_marcos.get())
