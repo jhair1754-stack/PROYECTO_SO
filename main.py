@@ -3,96 +3,184 @@ from tkinter import ttk, messagebox
 
 
 def ejecutar_lru():
+
     try:
+
         cantidad_marcos = int(entry_marcos.get())
-        referencias = list(map(int, entry_paginas.get().split()))
+
+        referencias = list(
+            map(
+                int,
+                entry_paginas.get().split()
+            )
+        )
+
+        # ---------------------------
+        # Limpiar tabla anterior
+        # ---------------------------
+
+        for item in tabla.get_children():
+            tabla.delete(item)
+
+        columnas = ["Marco"]
+
+        for i in range(len(referencias)):
+            columnas.append(str(i + 1))
+
+        tabla["columns"] = columnas
+
+        tabla.column("#0", width=0, stretch=False)
+
+        for col in columnas:
+
+            if col == "Marco":
+
+                tabla.heading(
+                    col,
+                    text="Marco"
+                )
+
+                tabla.column(
+                    col,
+                    width=90,
+                    anchor="center"
+                )
+
+            else:
+
+                indice = int(col) - 1
+
+                tabla.heading(
+                    col,
+                    text=str(referencias[indice])
+                )
+
+                tabla.column(
+                    col,
+                    width=60,
+                    anchor="center"
+                )
+
+        # ---------------------------
+        # Simulación LRU
+        # ---------------------------
 
         marcos = []
+        historial = []
+
+        hits = 0
         fallos = 0
-
-        resultado.config(state="normal")
-        resultado.delete("1.0", tk.END)
-
-        resultado.insert(
-            tk.END,
-            f"{'PÁGINA':^10}{'ESTADO':^15}{'MARCOS':^30}\n",
-            "titulo_tabla"
-        )
-
-        resultado.insert(
-            tk.END,
-            "-" * 60 + "\n"
-        )
 
         for pagina in referencias:
 
             if pagina in marcos:
+
                 marcos.remove(pagina)
                 marcos.append(pagina)
-                estado = "HIT"
-                tag = "hit"
+
+                hits += 1
 
             else:
+
                 fallos += 1
 
                 if len(marcos) < cantidad_marcos:
+
                     marcos.append(pagina)
+
                 else:
+
                     marcos.pop(0)
                     marcos.append(pagina)
 
-                estado = "FAULT"
-                tag = "fault"
+            estado = marcos.copy()
 
-            resultado.insert(
-                tk.END,
-                f"{pagina:^10}{estado:^15}{str(marcos):^30}\n",
-                tag
+            while len(estado) < cantidad_marcos:
+                estado.insert(0, "")
+
+            historial.append(estado.copy())
+
+        # ---------------------------
+        # Construcción de la matriz
+        # ---------------------------
+
+        for fila in range(cantidad_marcos):
+
+            valores = [f"Marco {fila}"]
+
+            for instante in historial:
+                valores.append(instante[fila])
+
+            tabla.insert(
+                "",
+                "end",
+                values=valores
             )
 
-        resultado.insert(
-            tk.END,
-            "\n" + "=" * 60 + "\n",
-            "titulo_tabla"
+        # ---------------------------
+        # Estadísticas
+        # ---------------------------
+
+        porcentaje_fallos = (
+            fallos / len(referencias)
+        ) * 100
+
+        porcentaje_hits = (
+            hits / len(referencias)
+        ) * 100
+
+        lbl_hits.config(
+            text=f"✅ Hits: {hits} ({porcentaje_hits:.2f}%)"
         )
 
-        resultado.insert(
-            tk.END,
-            f"Total de fallos de página: {fallos}\n",
-            "resumen"
+        lbl_fallos.config(
+            text=f"❌ Fallos: {fallos} ({porcentaje_fallos:.2f}%)"
         )
 
-        resultado.config(state="disabled")
+        lbl_total.config(
+            text=f"📄 Referencias procesadas: {len(referencias)}"
+        )
 
     except ValueError:
+
         messagebox.showerror(
             "Error",
-            "Ingrese datos válidos."
+            "Ingrese valores válidos."
         )
 
 
-# ------------------ VENTANA ------------------
+# =====================================================
+# VENTANA PRINCIPAL
+# =====================================================
 
 ventana = tk.Tk()
-ventana.title("Simulador LRU")
-ventana.geometry("850x600")
-ventana.configure(bg="#F4F6F8")
 
-# Estilo moderno
+ventana.title(
+    "Simulador LRU - Least Recently Used"
+)
+
+ventana.geometry("1200x700")
+
+ventana.configure(
+    bg="#F4F6F8"
+)
+
+# =====================================================
+# ESTILOS
+# =====================================================
+
 style = ttk.Style()
+
 style.theme_use("clam")
 
 style.configure(
     "Titulo.TLabel",
-    font=("Segoe UI", 18, "bold"),
-    background="#F4F6F8",
-    foreground="#1F2937"
+    font=("Segoe UI", 20, "bold"),
 )
 
 style.configure(
     "Texto.TLabel",
     font=("Segoe UI", 11),
-    background="#F4F6F8"
 )
 
 style.configure(
@@ -101,50 +189,116 @@ style.configure(
     padding=8
 )
 
-# Título
+# =====================================================
+# TITULO
+# =====================================================
+
 ttk.Label(
     ventana,
     text="Simulador de Reemplazo de Página LRU",
     style="Titulo.TLabel"
-).pack(pady=15)
+).pack(
+    pady=15
+)
 
-# Frame principal
-frame = ttk.Frame(ventana, padding=15)
-frame.pack(fill="x")
+# =====================================================
+# PANEL DE ENTRADA
+# =====================================================
+
+frame_entrada = ttk.LabelFrame(
+    ventana,
+    text=" Datos de Entrada "
+)
+
+frame_entrada.pack(
+    fill="x",
+    padx=15,
+    pady=10
+)
 
 # Marcos
+
 ttk.Label(
-    frame,
+    frame_entrada,
     text="Cantidad de marcos:",
     style="Texto.TLabel"
-).grid(row=0, column=0, sticky="w", pady=5)
+).grid(
+    row=0,
+    column=0,
+    padx=10,
+    pady=10,
+    sticky="w"
+)
 
-entry_marcos = ttk.Entry(frame, width=20)
-entry_marcos.grid(row=0, column=1, padx=10)
+entry_marcos = ttk.Entry(
+    frame_entrada,
+    width=20
+)
 
-# Referencias
+entry_marcos.grid(
+    row=0,
+    column=1,
+    padx=10
+)
+
+entry_marcos.insert(
+    0,
+    "3"
+)
+
+# Secuencia
+
 ttk.Label(
-    frame,
+    frame_entrada,
     text="Secuencia de páginas:",
     style="Texto.TLabel"
-).grid(row=1, column=0, sticky="w", pady=5)
+).grid(
+    row=1,
+    column=0,
+    padx=10,
+    pady=10,
+    sticky="w"
+)
 
-entry_paginas = ttk.Entry(frame, width=50)
-entry_paginas.grid(row=1, column=1, padx=10)
+entry_paginas = ttk.Entry(
+    frame_entrada,
+    width=80
+)
+
+entry_paginas.grid(
+    row=1,
+    column=1,
+    padx=10
+)
+
+entry_paginas.insert(
+    0,
+    "1 2 3 4 2 5 1 3 4 5"
+)
 
 # Botón
+
 ttk.Button(
-    ventana,
-    text="▶ Ejecutar LRU",
+    frame_entrada,
+    text="▶ Ejecutar Simulación LRU",
     style="Boton.TButton",
     command=ejecutar_lru
-).pack(pady=10)
+).grid(
+    row=2,
+    column=0,
+    columnspan=2,
+    pady=15
+)
 
-# Frame resultados
+# =====================================================
+# RESULTADOS
+# =====================================================
+
 frame_resultado = ttk.LabelFrame(
     ventana,
-    text=" Resultado de la simulación "
+    text=" Evolución de los Marcos de Memoria "
 )
+
 frame_resultado.pack(
     fill="both",
     expand=True,
@@ -152,42 +306,101 @@ frame_resultado.pack(
     pady=10
 )
 
-scroll = ttk.Scrollbar(frame_resultado)
-scroll.pack(side="right", fill="y")
+# Scrolls
 
-resultado = tk.Text(
+scroll_y = ttk.Scrollbar(
     frame_resultado,
-    font=("Consolas", 11),
-    bg="#FFFFFF",
-    fg="#111827",
-    yscrollcommand=scroll.set
+    orient="vertical"
 )
 
-resultado.pack(fill="both", expand=True)
-
-scroll.config(command=resultado.yview)
-
-# Colores de texto
-resultado.tag_config(
-    "hit",
-    foreground="#16A34A"
+scroll_x = ttk.Scrollbar(
+    frame_resultado,
+    orient="horizontal"
 )
 
-resultado.tag_config(
-    "fault",
-    foreground="#DC2626"
+tabla = ttk.Treeview(
+    frame_resultado,
+    show="headings",
+    yscrollcommand=scroll_y.set,
+    xscrollcommand=scroll_x.set
 )
 
-resultado.tag_config(
-    "titulo_tabla",
-    foreground="#2563EB",
-    font=("Consolas", 11, "bold")
+scroll_y.config(
+    command=tabla.yview
 )
 
-resultado.tag_config(
-    "resumen",
-    foreground="#7C3AED",
-    font=("Consolas", 12, "bold")
+scroll_x.config(
+    command=tabla.xview
 )
+
+scroll_y.pack(
+    side="right",
+    fill="y"
+)
+
+scroll_x.pack(
+    side="bottom",
+    fill="x"
+)
+
+tabla.pack(
+    fill="both",
+    expand=True
+)
+
+# =====================================================
+# ESTADÍSTICAS
+# =====================================================
+
+frame_estadisticas = ttk.LabelFrame(
+    ventana,
+    text=" Estadísticas "
+)
+
+frame_estadisticas.pack(
+    fill="x",
+    padx=15,
+    pady=10
+)
+
+lbl_hits = ttk.Label(
+    frame_estadisticas,
+    text="✅ Hits: 0",
+    font=("Segoe UI", 11, "bold")
+)
+
+lbl_hits.pack(
+    side="left",
+    padx=20,
+    pady=10
+)
+
+lbl_fallos = ttk.Label(
+    frame_estadisticas,
+    text="❌ Fallos: 0",
+    font=("Segoe UI", 11, "bold")
+)
+
+lbl_fallos.pack(
+    side="left",
+    padx=20
+)
+
+lbl_total = ttk.Label(
+    frame_estadisticas,
+    text="📄 Referencias procesadas: 0",
+    font=("Segoe UI", 11, "bold")
+)
+
+lbl_total.pack(
+    side="left",
+    padx=20
+)
+
+# =====================================================
+# EJECUTAR EJEMPLO AL INICIO
+# =====================================================
+
+ejecutar_lru()
 
 ventana.mainloop()
