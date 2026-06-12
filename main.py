@@ -7,63 +7,11 @@ def ejecutar_lru():
     try:
 
         cantidad_marcos = int(entry_marcos.get())
+        referencias = list(map(int, entry_paginas.get().split()))
 
-        referencias = list(
-            map(
-                int,
-                entry_paginas.get().split()
-            )
-        )
-
-        # ---------------------------
-        # Limpiar tabla anterior
-        # ---------------------------
-
-        for item in tabla.get_children():
-            tabla.delete(item)
-
-        columnas = ["Marco"]
-
-        for i in range(len(referencias)):
-            columnas.append(str(i + 1))
-
-        tabla["columns"] = columnas
-
-        tabla.column("#0", width=0, stretch=False)
-
-        for col in columnas:
-
-            if col == "Marco":
-
-                tabla.heading(
-                    col,
-                    text="Marco"
-                )
-
-                tabla.column(
-                    col,
-                    width=90,
-                    anchor="center"
-                )
-
-            else:
-
-                indice = int(col) - 1
-
-                tabla.heading(
-                    col,
-                    text=str(referencias[indice])
-                )
-
-                tabla.column(
-                    col,
-                    width=60,
-                    anchor="center"
-                )
-
-        # ---------------------------
-        # Simulación LRU
-        # ---------------------------
+        # Limpiar simulación anterior
+        for widget in frame_matriz.winfo_children():
+            widget.destroy()
 
         marcos = []
         historial = []
@@ -71,7 +19,13 @@ def ejecutar_lru():
         hits = 0
         fallos = 0
 
+        # -------------------------
+        # Simulación LRU
+        # -------------------------
+
         for pagina in referencias:
+
+            hit = False
 
             if pagina in marcos:
 
@@ -79,17 +33,16 @@ def ejecutar_lru():
                 marcos.append(pagina)
 
                 hits += 1
+                hit = True
 
             else:
 
                 fallos += 1
 
                 if len(marcos) < cantidad_marcos:
-
                     marcos.append(pagina)
 
                 else:
-
                     marcos.pop(0)
                     marcos.append(pagina)
 
@@ -98,36 +51,54 @@ def ejecutar_lru():
             while len(estado) < cantidad_marcos:
                 estado.insert(0, "")
 
-            historial.append(estado.copy())
+            historial.append(
+                {
+                    "marcos": estado.copy(),
+                    "hit": hit
+                }
+            )
 
-        # ---------------------------
-        # Construcción de la matriz
-        # ---------------------------
+        # -------------------------
+        # Dibujar matriz
+        # -------------------------
+
+        ancho = 45
+        alto = 40
 
         for fila in range(cantidad_marcos):
 
-            valores = [f"Marco {fila}"]
+            for columna in range(len(historial)):
 
-            for instante in historial:
-                valores.append(instante[fila])
+                valor = historial[columna]["marcos"][fila]
 
-            tabla.insert(
-                "",
-                "end",
-                values=valores
-            )
+                color = "#FFFFFF"
 
-        # ---------------------------
+                if valor != "":
+                    color = "#F8FAFC"
+
+                lbl = tk.Label(
+                    frame_matriz,
+                    text=str(valor),
+                    width=3,
+                    height=1,
+                    font=("Consolas", 18, "bold"),
+                    bg=color,
+                    relief="flat"
+                )
+
+                lbl.grid(
+                    row=fila,
+                    column=columna,
+                    padx=2,
+                    pady=2
+                )
+
+        # -------------------------
         # Estadísticas
-        # ---------------------------
+        # -------------------------
 
-        porcentaje_fallos = (
-            fallos / len(referencias)
-        ) * 100
-
-        porcentaje_hits = (
-            hits / len(referencias)
-        ) * 100
+        porcentaje_fallos = (fallos / len(referencias)) * 100
+        porcentaje_hits = (hits / len(referencias)) * 100
 
         lbl_hits.config(
             text=f"✅ Hits: {hits} ({porcentaje_hits:.2f}%)"
@@ -138,7 +109,7 @@ def ejecutar_lru():
         )
 
         lbl_total.config(
-            text=f"📄 Referencias procesadas: {len(referencias)}"
+            text=f"📄 Referencias: {len(referencias)}"
         )
 
     except ValueError:
@@ -149,25 +120,25 @@ def ejecutar_lru():
         )
 
 
-# =====================================================
-# VENTANA PRINCIPAL
-# =====================================================
+# ==================================================
+# VENTANA
+# ==================================================
 
 ventana = tk.Tk()
 
 ventana.title(
-    "Simulador LRU - Least Recently Used"
+    "Simulador LRU"
 )
 
-ventana.geometry("1200x700")
+ventana.geometry("1400x700")
 
 ventana.configure(
     bg="#F4F6F8"
 )
 
-# =====================================================
+# ==================================================
 # ESTILOS
-# =====================================================
+# ==================================================
 
 style = ttk.Style()
 
@@ -175,23 +146,17 @@ style.theme_use("clam")
 
 style.configure(
     "Titulo.TLabel",
-    font=("Segoe UI", 20, "bold"),
-)
-
-style.configure(
-    "Texto.TLabel",
-    font=("Segoe UI", 11),
+    font=("Segoe UI", 20, "bold")
 )
 
 style.configure(
     "Boton.TButton",
-    font=("Segoe UI", 11, "bold"),
-    padding=8
+    font=("Segoe UI", 11, "bold")
 )
 
-# =====================================================
+# ==================================================
 # TITULO
-# =====================================================
+# ==================================================
 
 ttk.Label(
     ventana,
@@ -201,44 +166,39 @@ ttk.Label(
     pady=15
 )
 
-# =====================================================
-# PANEL DE ENTRADA
-# =====================================================
+# ==================================================
+# ENTRADA
+# ==================================================
 
-frame_entrada = ttk.LabelFrame(
+frame_datos = ttk.LabelFrame(
     ventana,
-    text=" Datos de Entrada "
+    text="Datos de Entrada"
 )
 
-frame_entrada.pack(
+frame_datos.pack(
     fill="x",
     padx=15,
     pady=10
 )
 
-# Marcos
-
 ttk.Label(
-    frame_entrada,
-    text="Cantidad de marcos:",
-    style="Texto.TLabel"
+    frame_datos,
+    text="Cantidad de marcos:"
 ).grid(
     row=0,
     column=0,
     padx=10,
-    pady=10,
-    sticky="w"
+    pady=10
 )
 
 entry_marcos = ttk.Entry(
-    frame_entrada,
-    width=20
+    frame_datos,
+    width=15
 )
 
 entry_marcos.grid(
     row=0,
-    column=1,
-    padx=10
+    column=1
 )
 
 entry_marcos.insert(
@@ -246,57 +206,49 @@ entry_marcos.insert(
     "3"
 )
 
-# Secuencia
-
 ttk.Label(
-    frame_entrada,
-    text="Secuencia de páginas:",
-    style="Texto.TLabel"
+    frame_datos,
+    text="Secuencia:"
 ).grid(
     row=1,
     column=0,
     padx=10,
-    pady=10,
-    sticky="w"
+    pady=10
 )
 
 entry_paginas = ttk.Entry(
-    frame_entrada,
+    frame_datos,
     width=80
 )
 
 entry_paginas.grid(
     row=1,
-    column=1,
-    padx=10
+    column=1
 )
 
 entry_paginas.insert(
     0,
-    "1 2 3 4 2 5 1 3 4 5"
+    "1 2 3 1 4 2 5 1 2 3 4 5"
 )
 
-# Botón
-
 ttk.Button(
-    frame_entrada,
-    text="▶ Ejecutar Simulación LRU",
-    style="Boton.TButton",
+    frame_datos,
+    text="▶ Ejecutar LRU",
     command=ejecutar_lru
 ).grid(
     row=2,
     column=0,
     columnspan=2,
-    pady=15
+    pady=10
 )
 
-# =====================================================
-# RESULTADOS
-# =====================================================
+# ==================================================
+# RESULTADO
+# ==================================================
 
 frame_resultado = ttk.LabelFrame(
     ventana,
-    text=" Evolución de los Marcos de Memoria "
+    text="Visualización Tipo Escalera"
 )
 
 frame_resultado.pack(
@@ -306,36 +258,19 @@ frame_resultado.pack(
     pady=10
 )
 
-# Scrolls
-
-scroll_y = ttk.Scrollbar(
+canvas = tk.Canvas(
     frame_resultado,
-    orient="vertical"
+    bg="white"
 )
 
 scroll_x = ttk.Scrollbar(
     frame_resultado,
-    orient="horizontal"
+    orient="horizontal",
+    command=canvas.xview
 )
 
-tabla = ttk.Treeview(
-    frame_resultado,
-    show="headings",
-    yscrollcommand=scroll_y.set,
+canvas.configure(
     xscrollcommand=scroll_x.set
-)
-
-scroll_y.config(
-    command=tabla.yview
-)
-
-scroll_x.config(
-    command=tabla.xview
-)
-
-scroll_y.pack(
-    side="right",
-    fill="y"
 )
 
 scroll_x.pack(
@@ -343,18 +278,36 @@ scroll_x.pack(
     fill="x"
 )
 
-tabla.pack(
+canvas.pack(
     fill="both",
     expand=True
 )
 
-# =====================================================
+frame_matriz = tk.Frame(
+    canvas,
+    bg="white"
+)
+
+canvas.create_window(
+    (0, 0),
+    window=frame_matriz,
+    anchor="nw"
+)
+
+frame_matriz.bind(
+    "<Configure>",
+    lambda e: canvas.configure(
+        scrollregion=canvas.bbox("all")
+    )
+)
+
+# ==================================================
 # ESTADÍSTICAS
-# =====================================================
+# ==================================================
 
 frame_estadisticas = ttk.LabelFrame(
     ventana,
-    text=" Estadísticas "
+    text="Estadísticas"
 )
 
 frame_estadisticas.pack(
@@ -388,7 +341,7 @@ lbl_fallos.pack(
 
 lbl_total = ttk.Label(
     frame_estadisticas,
-    text="📄 Referencias procesadas: 0",
+    text="📄 Referencias: 0",
     font=("Segoe UI", 11, "bold")
 )
 
@@ -397,9 +350,7 @@ lbl_total.pack(
     padx=20
 )
 
-# =====================================================
-# EJECUTAR EJEMPLO AL INICIO
-# =====================================================
+# Ejecutar ejemplo inicial
 
 ejecutar_lru()
 
