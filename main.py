@@ -27,24 +27,22 @@ def ejecutar_lru():
 
             hit = False
 
-            if pagina in marcos:
+            pila_lru = []
 
-                marcos.remove(pagina)
-                marcos.append(pagina)
+            if pagina in pila_lru:
 
-                hits += 1
-                hit = True
+                # HIT
+                pila_lru.remove(pagina)
+                pila_lru.insert(0, pagina)
 
             else:
 
-                fallos += 1
+                # FAULT
 
-                if len(marcos) < cantidad_marcos:
-                    marcos.append(pagina)
+                if len(pila_lru) == cantidad_marcos:
+                    pagina_eliminada = pila_lru.pop(-1)
 
-                else:
-                    marcos.pop(0)
-                    marcos.append(pagina)
+                pila_lru.insert(0, pagina)
 
             estado = marcos.copy()
 
