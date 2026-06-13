@@ -2,101 +2,159 @@
 from tkinter import ttk, messagebox
 
 
+# =====================================================
+# ALGORITMO LRU TIPO PILA (STACK)
+# =====================================================
+
 def ejecutar_lru():
 
     try:
 
         cantidad_marcos = int(entry_marcos.get())
-        referencias = list(map(int, entry_paginas.get().split()))
 
-        # Limpiar simulación anterior
-        for widget in frame_matriz.winfo_children():
-            widget.destroy()
+        referencias = list(
+            map(
+                int,
+                entry_paginas.get().split()
+            )
+        )
 
-        marcos = []
+        # Limpiar dibujo anterior
+        canvas.delete("all")
+
+        pila = []
+
         historial = []
 
         hits = 0
         fallos = 0
 
-        # -------------------------
-        # Simulación LRU
-        # -------------------------
+        # ----------------------------------
+        # Simulación LRU estilo profesor
+        # ----------------------------------
 
         for pagina in referencias:
 
-            hit = False
+            eliminado = ""
 
-            pila_lru = []
+            if pagina in pila:
 
-            if pagina in pila_lru:
+                hits += 1
 
-                # HIT
-                pila_lru.remove(pagina)
-                pila_lru.insert(0, pagina)
+                pila.remove(pagina)
+
+                pila.insert(0, pagina)
+
+                estado = "HIT"
 
             else:
 
-                # FAULT
+                fallos += 1
 
-                if len(pila_lru) == cantidad_marcos:
-                    pagina_eliminada = pila_lru.pop(-1)
+                estado = "FAULT"
 
-                pila_lru.insert(0, pagina)
+                if len(pila) == cantidad_marcos:
 
-            estado = marcos.copy()
+                    eliminado = pila.pop(-1)
 
-            while len(estado) < cantidad_marcos:
-                estado.insert(0, "")
+                pila.insert(0, pagina)
+
+            snapshot = pila.copy()
+
+            while len(snapshot) < cantidad_marcos:
+                snapshot.append("")
 
             historial.append(
                 {
-                    "marcos": estado.copy(),
-                    "hit": hit
+                    "pila": snapshot,
+                    "estado": estado,
+                    "pagina": pagina,
+                    "eliminado": eliminado
                 }
             )
 
-        # -------------------------
-        # Dibujar matriz
-        # -------------------------
+        # ----------------------------------
+        # DIBUJO
+        # ----------------------------------
 
-        ancho = 45
-        alto = 40
+        ancho_celda = 60
+        alto_celda = 50
 
-        for fila in range(cantidad_marcos):
+        margen_x = 80
+        margen_y = 70
 
-            for columna in range(len(historial)):
+        # Título MRU
+        canvas.create_text(
+            40,
+            margen_y,
+            text="MRU",
+            font=("Segoe UI", 12, "bold"),
+            fill="#2563EB"
+        )
 
-                valor = historial[columna]["marcos"][fila]
+        # Dibujar columnas
+        for col, paso in enumerate(historial):
 
-                color = "#FFFFFF"
+            x = margen_x + col * ancho_celda
+
+            # Página referenciada
+            canvas.create_text(
+                x + ancho_celda / 2,
+                25,
+                text=str(paso["pagina"]),
+                font=("Segoe UI", 14, "bold")
+            )
+
+            # HIT o FAULT
+            color = "#16A34A" if paso["estado"] == "HIT" else "#DC2626"
+
+            canvas.create_text(
+                x + ancho_celda / 2,
+                50,
+                text="H" if paso["estado"] == "HIT" else "F",
+                fill=color,
+                font=("Segoe UI", 10, "bold")
+            )
+
+            for fila in range(cantidad_marcos):
+
+                y = margen_y + fila * alto_celda
+
+                valor = paso["pila"][fila]
+
+                canvas.create_rectangle(
+                    x,
+                    y,
+                    x + ancho_celda,
+                    y + alto_celda,
+                    outline="#CBD5E1",
+                    width=1
+                )
 
                 if valor != "":
-                    color = "#F8FAFC"
 
-                lbl = tk.Label(
-                    frame_matriz,
-                    text=str(valor),
-                    width=3,
-                    height=1,
-                    font=("Consolas", 18, "bold"),
-                    bg=color,
-                    relief="flat"
-                )
+                    canvas.create_text(
+                        x + ancho_celda / 2,
+                        y + alto_celda / 2,
+                        text=str(valor),
+                        font=("Consolas", 16, "bold")
+                    )
 
-                lbl.grid(
-                    row=fila,
-                    column=columna,
-                    padx=2,
-                    pady=2
-                )
+        # Etiqueta LRU
+        canvas.create_text(
+            40,
+            margen_y + cantidad_marcos * alto_celda - 10,
+            text="LRU",
+            font=("Segoe UI", 12, "bold"),
+            fill="#DC2626"
+        )
 
-        # -------------------------
-        # Estadísticas
-        # -------------------------
+        # ----------------------------------
+        # RESUMEN
+        # ----------------------------------
 
-        porcentaje_fallos = (fallos / len(referencias)) * 100
-        porcentaje_hits = (hits / len(referencias)) * 100
+        porcentaje_hits = hits * 100 / len(referencias)
+        porcentaje_fallos = fallos * 100 / len(referencias)
 
         lbl_hits.config(
             text=f"✅ Hits: {hits} ({porcentaje_hits:.2f}%)"
@@ -110,33 +168,35 @@ def ejecutar_lru():
             text=f"📄 Referencias: {len(referencias)}"
         )
 
+        canvas.config(
+            scrollregion=canvas.bbox("all")
+        )
+
     except ValueError:
 
         messagebox.showerror(
             "Error",
-            "Ingrese valores válidos."
+            "Ingrese datos válidos."
         )
 
 
-# ==================================================
+# =====================================================
 # VENTANA
-# ==================================================
+# =====================================================
 
 ventana = tk.Tk()
 
 ventana.title(
-    "Simulador LRU"
+    "Simulador LRU - Método del Profesor"
 )
 
-ventana.geometry("1400x700")
+ventana.geometry("1400x800")
 
-ventana.configure(
-    bg="#F4F6F8"
-)
+ventana.configure(bg="#F4F6F8")
 
-# ==================================================
+# =====================================================
 # ESTILOS
-# ==================================================
+# =====================================================
 
 style = ttk.Style()
 
@@ -147,26 +207,19 @@ style.configure(
     font=("Segoe UI", 20, "bold")
 )
 
-style.configure(
-    "Boton.TButton",
-    font=("Segoe UI", 11, "bold")
-)
-
-# ==================================================
-# TITULO
-# ==================================================
+# =====================================================
+# TÍTULO
+# =====================================================
 
 ttk.Label(
     ventana,
-    text="Simulador de Reemplazo de Página LRU",
+    text="Simulador LRU (Pila de Recencia)",
     style="Titulo.TLabel"
-).pack(
-    pady=15
-)
+).pack(pady=15)
 
-# ==================================================
-# ENTRADA
-# ==================================================
+# =====================================================
+# DATOS
+# =====================================================
 
 frame_datos = ttk.LabelFrame(
     ventana,
@@ -201,7 +254,7 @@ entry_marcos.grid(
 
 entry_marcos.insert(
     0,
-    "3"
+    "4"
 )
 
 ttk.Label(
@@ -216,7 +269,7 @@ ttk.Label(
 
 entry_paginas = ttk.Entry(
     frame_datos,
-    width=80
+    width=90
 )
 
 entry_paginas.grid(
@@ -226,7 +279,7 @@ entry_paginas.grid(
 
 entry_paginas.insert(
     0,
-    "1 2 3 1 4 2 5 1 2 3 4 5"
+    "0 1 3 4 5 0 1 3 4 2 8 3 2"
 )
 
 ttk.Button(
@@ -240,13 +293,13 @@ ttk.Button(
     pady=10
 )
 
-# ==================================================
+# =====================================================
 # RESULTADO
-# ==================================================
+# =====================================================
 
 frame_resultado = ttk.LabelFrame(
     ventana,
-    text="Visualización Tipo Escalera"
+    text="Visualización MRU → LRU"
 )
 
 frame_resultado.pack(
@@ -256,52 +309,37 @@ frame_resultado.pack(
     pady=10
 )
 
-canvas = tk.Canvas(
-    frame_resultado,
-    bg="white"
-)
-
 scroll_x = ttk.Scrollbar(
     frame_resultado,
-    orient="horizontal",
-    command=canvas.xview
+    orient="horizontal"
 )
 
-canvas.configure(
-    xscrollcommand=scroll_x.set
+scroll_y = ttk.Scrollbar(
+    frame_resultado,
+    orient="vertical"
 )
 
-scroll_x.pack(
-    side="bottom",
-    fill="x"
+canvas = tk.Canvas(
+    frame_resultado,
+    bg="white",
+    xscrollcommand=scroll_x.set,
+    yscrollcommand=scroll_y.set
 )
+
+scroll_x.config(command=canvas.xview)
+scroll_y.config(command=canvas.yview)
+
+scroll_x.pack(side="bottom", fill="x")
+scroll_y.pack(side="right", fill="y")
 
 canvas.pack(
     fill="both",
     expand=True
 )
 
-frame_matriz = tk.Frame(
-    canvas,
-    bg="white"
-)
-
-canvas.create_window(
-    (0, 0),
-    window=frame_matriz,
-    anchor="nw"
-)
-
-frame_matriz.bind(
-    "<Configure>",
-    lambda e: canvas.configure(
-        scrollregion=canvas.bbox("all")
-    )
-)
-
-# ==================================================
+# =====================================================
 # ESTADÍSTICAS
-# ==================================================
+# =====================================================
 
 frame_estadisticas = ttk.LabelFrame(
     ventana,
@@ -322,8 +360,7 @@ lbl_hits = ttk.Label(
 
 lbl_hits.pack(
     side="left",
-    padx=20,
-    pady=10
+    padx=20
 )
 
 lbl_fallos = ttk.Label(
@@ -349,7 +386,6 @@ lbl_total.pack(
 )
 
 # Ejecutar ejemplo inicial
-
 ejecutar_lru()
 
 ventana.mainloop()
