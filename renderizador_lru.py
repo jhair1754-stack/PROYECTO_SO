@@ -6,24 +6,25 @@ sobre un Canvas de Tkinter, con animaciones suaves y visualización
 clara de fallos de página, hits, marcos y subcuadraditos de distancia.
 """
 
-# Paleta de colores para un estilo moderno y tecnológico
+# Paleta de colores — Estilo Premium Dark & Gold
 COLORES = {
-    "fondo_canvas": "#0F172A",
-    "borde_celda": "#334155",
-    "relleno_celda": "#1E293B",
-    "texto_pagina": "#F8FAFC",
-    "texto_numero": "#E2E8F0",
-    "fallo_circulo": "#EF4444",
-    "fallo_relleno": "#7F1D1D",
-    "hit_linea": "#22C55E",
-    "hit_relleno": "#14532D",
-    "subcuadro_borde": "#F59E0B",
-    "subcuadro_relleno": "#78350F",
-    "subcuadro_texto": "#FDE68A",
-    "etiqueta_mru": "#3B82F6",
-    "etiqueta_lru": "#EF4444",
-    "separador": "#475569",
-    "titulo_secuencia": "#94A3B8",
+    "fondo_canvas":      "#1A1F26",
+    "borde_celda":       "#C5A880",
+    "relleno_celda":     "#1E2530",
+    "texto_pagina":      "#E8DCC8",
+    "texto_numero":      "#E0D6C2",
+    "fallo_circulo":     "#E74C3C",
+    "fallo_relleno":     "#3B1A1A",
+    "hit_linea":         "#2ECC71",
+    "hit_relleno":       "#1A3B2A",
+    "subcuadro_borde":   "#C5A880",
+    "subcuadro_relleno": "#2A2418",
+    "subcuadro_texto":   "#FFD700",
+    "etiqueta_mru":      "#5DADE2",
+    "etiqueta_lru":      "#E74C3C",
+    "separador":         "#C5A880",
+    "titulo_secuencia":  "#8A7D6B",
+    "reemplazo_triangulo": "#FFD700",
 }
 
 # Dimensiones de la tabla
@@ -170,6 +171,14 @@ class LRURenderer:
                 font=("Consolas", 8, "bold"),
                 fill=COLORES["fallo_circulo"]
             )
+            # Triángulo de reemplazo (solo si los marcos estaban llenos)
+            if paso.get("es_reemplazo"):
+                ty = y_label + 12
+                self.canvas.create_polygon(
+                    x - 6, ty, x + 6, ty, x, ty + 8,
+                    fill=COLORES["reemplazo_triangulo"],
+                    outline=COLORES["reemplazo_triangulo"]
+                )
         else:
             self.canvas.create_text(
                 x, y_label, text="H",
@@ -201,9 +210,9 @@ class LRURenderer:
                         x + 2, y + 2,
                         x + ANCHO_CELDA - 2, y + ALTO_CELDA - 2,
                         outline=COLORES["fallo_circulo"], width=2,
-                        fill="#1C1917"
+                        fill="#2A1A1A"
                     )
-                    color_num = "#FBBF24"
+                    color_num = "#FFD700"
                 else:
                     color_num = COLORES["texto_numero"]
 

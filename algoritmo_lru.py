@@ -10,15 +10,17 @@ def simular_lru(referencias, cantidad_marcos):
     """
     Ejecuta la simulación LRU sobre una secuencia de referencias a páginas.
 
-    Retorna una lista de pasos (columnas), el total de hits y el total de fallos.
-    Cada paso contiene la página referenciada, si fue fallo o hit, y el estado
-    actual de los marcos (solo en fallos).
+    Retorna una lista de pasos (columnas), el total de hits, el total de fallos
+    y el total de reemplazos (fallos con marcos llenos).
+    Cada paso contiene la página referenciada, si fue fallo o hit, si hubo
+    reemplazo, y el estado actual de los marcos (solo en fallos).
     """
     marcos = []
     ultima_referencia = {}
     pasos = []
     hits = 0
     fallos = 0
+    reemplazos = 0
 
     for turno, pagina in enumerate(referencias):
         if pagina in marcos:
@@ -28,16 +30,20 @@ def simular_lru(referencias, cantidad_marcos):
                 "turno": turno,
                 "pagina": pagina,
                 "es_fallo": False,
+                "es_reemplazo": False,
             })
         else:
             fallos += 1
 
             if len(marcos) < cantidad_marcos:
                 marcos.insert(0, pagina)
+                hubo_reemplazo = False
             else:
                 victima = _encontrar_victima(marcos, ultima_referencia, turno)
                 idx = marcos.index(victima)
                 marcos = [pagina] + marcos[:idx] + marcos[idx + 1:]
+                hubo_reemplazo = True
+                reemplazos += 1
 
             ultima_referencia[pagina] = turno
             pasos.append({
@@ -45,10 +51,11 @@ def simular_lru(referencias, cantidad_marcos):
                 "pagina": pagina,
                 "marcos": list(marcos),
                 "es_fallo": True,
+                "es_reemplazo": hubo_reemplazo,
             })
 
     _calcular_distancias(pasos, referencias, cantidad_marcos)
-    return pasos, hits, fallos
+    return pasos, hits, fallos, reemplazos
 
 
 def _encontrar_victima(marcos, ultima_referencia, turno_actual):

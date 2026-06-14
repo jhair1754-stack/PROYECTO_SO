@@ -1,7 +1,7 @@
 """
 Simulador LRU — Punto de entrada principal.
 
-Construye la ventana con un diseño oscuro y tecnológico,
+Construye la ventana con un diseño Premium Dark & Gold,
 conecta los datos de entrada con el algoritmo LRU y el renderizador
 de animación.
 """
@@ -15,14 +15,14 @@ from renderizador_lru import LRURenderer, COLORES
 
 # ─── Colores de la interfaz ──────────────────────────────────────────────────
 
-BG_PRINCIPAL = "#0F172A"
-BG_PANEL = "#1E293B"
-FG_TEXTO = "#E2E8F0"
-FG_TITULO = "#F8FAFC"
-FG_ACENTO = "#38BDF8"
-FG_BOTON = "#0EA5E9"
-FG_HIT = "#22C55E"
-FG_FALLO = "#EF4444"
+BG_PRINCIPAL = "#0D0D0D"
+BG_PANEL     = "#121212"
+FG_TEXTO     = "#D4B996"
+FG_TITULO    = "#C5A880"
+FG_ACENTO    = "#C5A880"
+FG_BOTON     = "#B8963E"
+FG_HIT       = "#2ECC71"
+FG_FALLO     = "#E74C3C"
 
 
 class LRUSimulatorApp:
@@ -53,7 +53,7 @@ class LRUSimulatorApp:
                          background=BG_PRINCIPAL)
         style.configure("Subtitulo.TLabel",
                          font=("Segoe UI", 10),
-                         foreground="#94A3B8",
+                         foreground="#8A7D6B",
                          background=BG_PRINCIPAL)
         style.configure("TLabelFrame",
                          background=BG_PANEL,
@@ -69,21 +69,36 @@ class LRUSimulatorApp:
                          foreground=FG_TEXTO,
                          font=("Segoe UI", 10))
         style.configure("TEntry",
-                         fieldbackground="#334155",
-                         foreground=FG_TEXTO,
-                         insertcolor=FG_TEXTO,
+                         fieldbackground="#252A34",
+                         foreground="#E0D6C2",
+                         insertcolor="#E0D6C2",
                          font=("Consolas", 11))
         style.configure("Ejecutar.TButton",
                          font=("Segoe UI", 11, "bold"),
                          background=FG_BOTON,
-                         foreground=FG_TITULO,
-                         padding=(20, 8))
+                         foreground="#0D0D0D",
+                         padding=(20, 18))
         style.map("Ejecutar.TButton",
-                   background=[("active", "#0284C7"), ("disabled", "#475569")])
+                   background=[("active", "#D4AA4F"), ("disabled", "#3A3A3A")])
         style.configure("Stats.TLabel",
-                         background=BG_PANEL,
-                         foreground=FG_TEXTO,
+                         background="#0A0A0A",
+                         foreground="#E0D6C2",
                          font=("Consolas", 11, "bold"))
+        # Scrollbar oscuro
+        style.configure("TScrollbar",
+                         background="#1A1F26",
+                         troughcolor="#0D0D0D",
+                         arrowcolor="#C5A880")
+        # Panel de estadísticas oscuro
+        style.configure("Stats.TLabelframe",
+                         background="#0A0A0A",
+                         foreground="#D4B996",
+                         borderwidth=2,
+                         relief="groove")
+        style.configure("Stats.TLabelframe.Label",
+                         background="#0A0A0A",
+                         foreground="#C5A880",
+                         font=("Segoe UI", 10, "bold"))
 
     # ── Construcción de la interfaz ──────────────────────────────────────────
 
@@ -123,7 +138,47 @@ class LRUSimulatorApp:
             style="Ejecutar.TButton",
             command=self._ejecutar
         )
-        self.btn_ejecutar.grid(row=0, column=4, padx=15, pady=10)
+        self.btn_ejecutar.grid(row=0, column=4, padx=(15, 10), pady=10, sticky="ns")
+
+        # Sub-contenedor vertical para indicadores de resultado
+        frame_indicadores = tk.Frame(frame_datos, bg=BG_PANEL)
+        frame_indicadores.grid(row=0, column=5, padx=(5, 15), pady=8, sticky="w")
+
+        # Fila superior: Fallos de Página
+        row_fallos = tk.Frame(frame_indicadores, bg=BG_PANEL)
+        row_fallos.pack(anchor="w", pady=(0, 4))
+
+        tk.Label(
+            row_fallos, text="Fallos de Página:",
+            font=("Segoe UI", 9, "bold"), fg="#C5A880", bg=BG_PANEL
+        ).pack(side="left", padx=(0, 6))
+
+        self.entry_fallos_resultado = tk.Entry(
+            row_fallos, width=6, state="readonly",
+            font=("Consolas", 14, "bold"), justify="center",
+            readonlybackground="#121212", fg="#FFE600",
+            highlightthickness=1, highlightcolor="#C5A880",
+            relief="flat", bd=2
+        )
+        self.entry_fallos_resultado.pack(side="left")
+
+        # Fila inferior: Reemplazos de Página
+        row_reemplazos = tk.Frame(frame_indicadores, bg=BG_PANEL)
+        row_reemplazos.pack(anchor="w", pady=(0, 0))
+
+        tk.Label(
+            row_reemplazos, text="Reemplazos de Página:",
+            font=("Segoe UI", 9, "bold"), fg="#C5A880", bg=BG_PANEL
+        ).pack(side="left", padx=(0, 6))
+
+        self.entry_reemplazos_resultado = tk.Entry(
+            row_reemplazos, width=6, state="readonly",
+            font=("Consolas", 14, "bold"), justify="center",
+            readonlybackground="#121212", fg="#FFE600",
+            highlightthickness=1, highlightcolor="#C5A880",
+            relief="flat", bd=2
+        )
+        self.entry_reemplazos_resultado.pack(side="left")
 
         # Canvas de visualización
         frame_visual = ttk.LabelFrame(self.root, text="  Visualización Animada  ")
@@ -147,7 +202,8 @@ class LRUSimulatorApp:
         self.canvas.pack(fill="both", expand=True)
 
         # Panel de estadísticas
-        frame_stats = ttk.LabelFrame(self.root, text="  Estadísticas  ")
+        frame_stats = ttk.LabelFrame(self.root, text="  Estadísticas  ",
+                                      style="Stats.TLabelframe")
         frame_stats.pack(fill="x", padx=20, pady=(0, 12))
 
         self.lbl_hits = ttk.Label(frame_stats, text="✅  Hits: —", style="Stats.TLabel")
@@ -184,10 +240,11 @@ class LRUSimulatorApp:
         self.btn_ejecutar.config(state="disabled")
         self._actualizar_estadisticas_cargando()
 
-        pasos, hits, fallos = simular_lru(referencias, cantidad_marcos)
+        pasos, hits, fallos, reemplazos = simular_lru(referencias, cantidad_marcos)
 
         def al_terminar():
             self._actualizar_estadisticas(hits, fallos, len(referencias))
+            self._mostrar_resultados_entrada(fallos, reemplazos)
             self.btn_ejecutar.config(state="normal")
 
         self.renderer.iniciar_animacion(pasos, referencias, cantidad_marcos, al_terminar)
@@ -196,6 +253,9 @@ class LRUSimulatorApp:
         self.lbl_hits.config(text="✅  Hits: ...")
         self.lbl_fallos.config(text="❌  Fallos: ...")
         self.lbl_total.config(text="📄  Total: ...")
+        # Limpiar cuadros de resultado
+        self._escribir_entry_readonly(self.entry_fallos_resultado, "...")
+        self._escribir_entry_readonly(self.entry_reemplazos_resultado, "...")
 
     def _actualizar_estadisticas(self, hits, fallos, total):
         pct_hits = hits * 100 / total if total else 0
@@ -203,6 +263,19 @@ class LRUSimulatorApp:
         self.lbl_hits.config(text=f"✅  Hits: {hits}  ({pct_hits:.1f}%)")
         self.lbl_fallos.config(text=f"❌  Fallos: {fallos}  ({pct_fallos:.1f}%)")
         self.lbl_total.config(text=f"📄  Total: {total} referencias")
+
+    def _mostrar_resultados_entrada(self, fallos, reemplazos):
+        """Escribe los resultados finales en los cuadros readonly."""
+        self._escribir_entry_readonly(self.entry_fallos_resultado, str(fallos))
+        self._escribir_entry_readonly(self.entry_reemplazos_resultado, str(reemplazos))
+
+    @staticmethod
+    def _escribir_entry_readonly(entry, texto):
+        """Escribe texto en un Entry readonly de forma segura."""
+        entry.config(state="normal")
+        entry.delete(0, "end")
+        entry.insert(0, texto)
+        entry.config(state="readonly")
 
 
 # ─── Punto de entrada ────────────────────────────────────────────────────────
