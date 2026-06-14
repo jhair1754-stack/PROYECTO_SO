@@ -35,10 +35,19 @@ class LRUSimulatorApp:
         self.root.configure(bg=BG_PRINCIPAL)
         self.root.minsize(900, 600)
 
+        # Canvas de fondo degradado (negro a azul grisáceo muy oscuro)
+        self.canvas_bg = tk.Canvas(self.root, highlightthickness=0)
+        self.canvas_bg.place(x=0, y=0, relwidth=1, relheight=1)
+        self.canvas_bg.bind("<Configure>", self._dibujar_degradado_fondo)
+        self.canvas_bg.tk.call('lower', self.canvas_bg._w)
+
         self._configurar_estilos()
         self._construir_interfaz()
 
         self.renderer = LRURenderer(self.canvas, self.root)
+
+        # Tooltip para la secuencia de referencias
+        self._crear_tooltip(self.entry_paginas, "Nota: Ingrese los números separados por un espacio (ej: 1 2 3)")
 
     # ── Estilos ──────────────────────────────────────────────────────────────
 
@@ -276,6 +285,54 @@ class LRUSimulatorApp:
         entry.delete(0, "end")
         entry.insert(0, texto)
         entry.config(state="readonly")
+
+    def _dibujar_degradado_fondo(self, event=None):
+        """Dibuja un degradado de negro a azul grisáceo oscuro en el fondo."""
+        self.canvas_bg.delete("degradado")
+        ancho = self.canvas_bg.winfo_width()
+        alto = self.canvas_bg.winfo_height()
+        r1, g1, b1 = 0, 0, 0
+        r2, g2, b2 = 0x1A, 0x1F, 0x26
+        # Dibujar en pasos de 3px para optimizar redibujado
+        for y in range(0, alto, 3):
+            frac = y / alto
+            r = int(r1 + (r2 - r1) * frac)
+            g = int(g1 + (g2 - g1) * frac)
+            b = int(b1 + (b2 - b1) * frac)
+            color_hex = f"#{r:02x}{g:02x}{b:02x}"
+            self.canvas_bg.create_rectangle(0, y, ancho, y + 3, fill=color_hex, outline="", tags="degradado")
+
+    def _crear_tooltip(self, widget, texto):
+        """Crea un tooltip flotante (Tooltip) para el widget dado."""
+        tip_window = [None]
+
+        def mostrar(event):
+            if tip_window[0]:
+                return
+            x = widget.winfo_rootx() + event.x + 15
+            y = widget.winfo_rooty() + event.y + 15
+            tip_window[0] = tw = tk.Toplevel(widget)
+            tw.wm_overrideredirect(True)
+            tw.wm_geometry(f"+{x}+{y}")
+            label = tk.Label(tw, text=texto, bg="#FFFFE0", fg="#000000",
+                             relief="solid", bd=1, font=("Segoe UI", 9),
+                             padx=6, pady=4)
+            label.pack()
+
+        def ocultar(event):
+            if tip_window[0]:
+                tip_window[0].destroy()
+                tip_window[0] = None
+
+        def mover(event):
+            if tip_window[0]:
+                x = widget.winfo_rootx() + event.x + 15
+                y = widget.winfo_rooty() + event.y + 15
+                tip_window[0].wm_geometry(f"+{x}+{y}")
+
+        widget.bind("<Enter>", mostrar)
+        widget.bind("<Leave>", ocultar)
+        widget.bind("<Motion>", mover)
 
 
 # ─── Punto de entrada ────────────────────────────────────────────────────────
