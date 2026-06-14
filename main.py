@@ -281,7 +281,12 @@ class LRUSimulatorApp:
 # ─── Punto de entrada ────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = LRUSimulatorApp(root)
-    root.after(600, app._ejecutar)
-    root.mainloop()
+    from integrantes import mostrar_intro
+
+    def iniciar_simulador():
+        root = tk.Tk()
+        app = LRUSimulatorApp(root)
+        root.after(600, app._ejecutar)
+        root.mainloop()
+
+    mostrar_intro(iniciar_simulador)
