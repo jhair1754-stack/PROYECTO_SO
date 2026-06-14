@@ -63,11 +63,11 @@ class LRUSimulatorApp:
         style.configure("TLabelFrame.Label",
                          background=BG_PANEL,
                          foreground=FG_ACENTO,
-                         font=("Segoe UI", 10, "bold"))
+                         font=("Segoe UI", 13, "bold"))
         style.configure("TLabel",
                          background=BG_PANEL,
                          foreground=FG_TEXTO,
-                         font=("Segoe UI", 10))
+                         font=("Segoe UI", 11))
         style.configure("TEntry",
                          fieldbackground="#252A34",
                          foreground="#E0D6C2",
@@ -83,7 +83,7 @@ class LRUSimulatorApp:
         style.configure("Stats.TLabel",
                          background="#0A0A0A",
                          foreground="#E0D6C2",
-                         font=("Consolas", 11, "bold"))
+                         font=("Consolas", 12, "bold"))
         # Scrollbar oscuro
         style.configure("TScrollbar",
                          background="#1A1F26",
@@ -98,7 +98,7 @@ class LRUSimulatorApp:
         style.configure("Stats.TLabelframe.Label",
                          background="#0A0A0A",
                          foreground="#C5A880",
-                         font=("Segoe UI", 10, "bold"))
+                         font=("Segoe UI", 13, "bold"))
 
     # ── Construcción de la interfaz ──────────────────────────────────────────
 

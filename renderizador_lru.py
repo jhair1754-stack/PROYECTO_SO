@@ -106,14 +106,14 @@ class LRURenderer:
         # Etiqueta MRU (arriba)
         self.canvas.create_text(
             40, y_inicio + 15,
-            text="MRU", font=("Consolas", 11, "bold"),
+            text="MRU", font=("Consolas", 13, "bold"),
             fill=COLORES["etiqueta_mru"], anchor="w"
         )
 
         # Etiqueta LRU (abajo)
         self.canvas.create_text(
             40, y_fin - 15,
-            text="LRU", font=("Consolas", 11, "bold"),
+            text="LRU", font=("Consolas", 13, "bold"),
             fill=COLORES["etiqueta_lru"], anchor="w"
         )
 
@@ -131,7 +131,7 @@ class LRURenderer:
         self.canvas.create_text(
             MARGEN_X, 15,
             text="Secuencia de Referencias",
-            font=("Segoe UI", 9), fill=COLORES["titulo_secuencia"],
+            font=("Segoe UI", 12, "bold"), fill=COLORES["titulo_secuencia"],
             anchor="w"
         )
 
