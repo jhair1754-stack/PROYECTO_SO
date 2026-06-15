@@ -23,6 +23,7 @@ def _buscar_logo():
 def mostrar_intro(callback_terminar):
     splash = tk.Tk()
     splash.overrideredirect(True)
+    splash.attributes("-topmost", True)
     splash.configure(bg=_BG)
 
     # Centrar ventana

@@ -316,6 +316,7 @@ if __name__ == "__main__":
 
     def iniciar_simulador():
         root = tk.Tk()
+        root.attributes("-topmost", True)
         app = LRUSimulatorApp(root)
         root.after(600, app._ejecutar)
         root.mainloop()
