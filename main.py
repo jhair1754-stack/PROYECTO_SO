@@ -1,20 +1,10 @@
-"""
-Simulador LRU — Punto de entrada principal.
-
-Construye la ventana con un diseño Premium Dark & Gold,
-conecta los datos de entrada con el algoritmo LRU y el renderizador
-de animación.
-"""
-
 import tkinter as tk
 from tkinter import ttk, messagebox
 
 from algoritmo_lru import simular_lru
 from renderizador_lru import LRURenderer, COLORES
 
-
-# ─── Colores de la interfaz ──────────────────────────────────────────────────
-
+# Colores de la interfaz
 BG_PRINCIPAL = "#0D0D0D"
 BG_PANEL     = "#121212"
 FG_TEXTO     = "#D4B996"
@@ -26,7 +16,6 @@ FG_FALLO     = "#E74C3C"
 
 
 class LRUSimulatorApp:
-    """Aplicación principal del simulador LRU."""
 
     def __init__(self, root):
         self.root = root
@@ -35,7 +24,7 @@ class LRUSimulatorApp:
         self.root.configure(bg=BG_PRINCIPAL)
         self.root.minsize(900, 600)
 
-        # Canvas de fondo degradado (negro a azul grisáceo muy oscuro)
+        # Canvas de fondo degradado
         self.canvas_bg = tk.Canvas(self.root, highlightthickness=0)
         self.canvas_bg.place(x=0, y=0, relwidth=1, relheight=1)
         self.canvas_bg.bind("<Configure>", self._dibujar_degradado_fondo)
@@ -48,8 +37,6 @@ class LRUSimulatorApp:
 
         # Tooltip para la secuencia de referencias
         self._crear_tooltip(self.entry_paginas, "Nota: Ingrese los números separados por un espacio (ej: 1 2 3)")
-
-    # ── Estilos ──────────────────────────────────────────────────────────────
 
     def _configurar_estilos(self):
         style = ttk.Style()
@@ -93,12 +80,10 @@ class LRUSimulatorApp:
                          background="#0A0A0A",
                          foreground="#E0D6C2",
                          font=("Consolas", 12, "bold"))
-        # Scrollbar oscuro
         style.configure("TScrollbar",
                          background="#1A1F26",
                          troughcolor="#0D0D0D",
                          arrowcolor="#C5A880")
-        # Panel de estadísticas oscuro
         style.configure("Stats.TLabelframe",
                          background="#0A0A0A",
                          foreground="#D4B996",
@@ -109,10 +94,8 @@ class LRUSimulatorApp:
                          foreground="#C5A880",
                          font=("Segoe UI", 13, "bold"))
 
-    # ── Construcción de la interfaz ──────────────────────────────────────────
-
     def _construir_interfaz(self):
-        # Título
+        # Titulo
         ttk.Label(
             self.root,
             text="⚙  Simulador LRU",
@@ -149,11 +132,11 @@ class LRUSimulatorApp:
         )
         self.btn_ejecutar.grid(row=0, column=4, padx=(15, 10), pady=10, sticky="ns")
 
-        # Sub-contenedor vertical para indicadores de resultado
+        # Indicadores de resultado
         frame_indicadores = tk.Frame(frame_datos, bg=BG_PANEL)
         frame_indicadores.grid(row=0, column=5, padx=(5, 15), pady=8, sticky="w")
 
-        # Fila superior: Fallos de Página
+        # Fallos de Pagina
         row_fallos = tk.Frame(frame_indicadores, bg=BG_PANEL)
         row_fallos.pack(anchor="w", pady=(0, 4))
 
@@ -171,7 +154,7 @@ class LRUSimulatorApp:
         )
         self.entry_fallos_resultado.pack(side="left")
 
-        # Fila inferior: Reemplazos de Página
+        # Reemplazos de Pagina
         row_reemplazos = tk.Frame(frame_indicadores, bg=BG_PANEL)
         row_reemplazos.pack(anchor="w", pady=(0, 0))
 
@@ -189,7 +172,7 @@ class LRUSimulatorApp:
         )
         self.entry_reemplazos_resultado.pack(side="left")
 
-        # Canvas de visualización
+        # Canvas de visualizacion
         frame_visual = ttk.LabelFrame(self.root, text="  Visualización Animada  ")
         frame_visual.pack(fill="both", expand=True, padx=20, pady=(0, 8))
 
@@ -210,7 +193,7 @@ class LRUSimulatorApp:
         scroll_y.pack(side="right", fill="y")
         self.canvas.pack(fill="both", expand=True)
 
-        # Panel de estadísticas
+        # Panel de estadisticas
         frame_stats = ttk.LabelFrame(self.root, text="  Estadísticas  ",
                                       style="Stats.TLabelframe")
         frame_stats.pack(fill="x", padx=20, pady=(0, 12))
@@ -223,8 +206,6 @@ class LRUSimulatorApp:
 
         self.lbl_total = ttk.Label(frame_stats, text="📄  Total: —", style="Stats.TLabel")
         self.lbl_total.pack(side="left", padx=25, pady=8)
-
-    # ── Lógica de ejecución ──────────────────────────────────────────────────
 
     def _ejecutar(self):
         try:
@@ -262,7 +243,6 @@ class LRUSimulatorApp:
         self.lbl_hits.config(text="✅  Hits: ...")
         self.lbl_fallos.config(text="❌  Fallos: ...")
         self.lbl_total.config(text="📄  Total: ...")
-        # Limpiar cuadros de resultado
         self._escribir_entry_readonly(self.entry_fallos_resultado, "...")
         self._escribir_entry_readonly(self.entry_reemplazos_resultado, "...")
 
@@ -274,26 +254,22 @@ class LRUSimulatorApp:
         self.lbl_total.config(text=f"📄  Total: {total} referencias")
 
     def _mostrar_resultados_entrada(self, fallos, reemplazos):
-        """Escribe los resultados finales en los cuadros readonly."""
         self._escribir_entry_readonly(self.entry_fallos_resultado, str(fallos))
         self._escribir_entry_readonly(self.entry_reemplazos_resultado, str(reemplazos))
 
     @staticmethod
     def _escribir_entry_readonly(entry, texto):
-        """Escribe texto en un Entry readonly de forma segura."""
         entry.config(state="normal")
         entry.delete(0, "end")
         entry.insert(0, texto)
         entry.config(state="readonly")
 
     def _dibujar_degradado_fondo(self, event=None):
-        """Dibuja un degradado de negro a azul grisáceo oscuro en el fondo."""
         self.canvas_bg.delete("degradado")
         ancho = self.canvas_bg.winfo_width()
         alto = self.canvas_bg.winfo_height()
         r1, g1, b1 = 0, 0, 0
         r2, g2, b2 = 0x1A, 0x1F, 0x26
-        # Dibujar en pasos de 3px para optimizar redibujado
         for y in range(0, alto, 3):
             frac = y / alto
             r = int(r1 + (r2 - r1) * frac)
@@ -303,7 +279,6 @@ class LRUSimulatorApp:
             self.canvas_bg.create_rectangle(0, y, ancho, y + 3, fill=color_hex, outline="", tags="degradado")
 
     def _crear_tooltip(self, widget, texto):
-        """Crea un tooltip flotante (Tooltip) para el widget dado."""
         tip_window = [None]
 
         def mostrar(event):
@@ -335,10 +310,9 @@ class LRUSimulatorApp:
         widget.bind("<Motion>", mover)
 
 
-# ─── Punto de entrada ────────────────────────────────────────────────────────
-
+# Punto de entrada
 if __name__ == "__main__":
-    from integrantes import mostrar_intro
+    from caratula import mostrar_intro
 
     def iniciar_simulador():
         root = tk.Tk()

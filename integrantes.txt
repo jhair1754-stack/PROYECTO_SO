@@ -1,0 +1,6 @@
+Sistemas Operativos G2 - Proyecto 1
+"Algoritmos de Reemplazo de Pagina"
+Integrantes del Equipo 6:
+- Yucra Tintaya, Anthony Josue (24200043)
+- Figueroa Estrella, Jhair Alberto (24200013)
+- Jimenes Trujillo, Jack Bryan (24200109)

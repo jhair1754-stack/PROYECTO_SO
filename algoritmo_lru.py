@@ -1,20 +1,5 @@
-"""
-Módulo de simulación del algoritmo LRU (Least Recently Used).
-
-Contiene la lógica pura del algoritmo de reemplazo de páginas,
-sin dependencia de interfaz gráfica.
-"""
-
-
 def simular_lru(referencias, cantidad_marcos):
-    """
-    Ejecuta la simulación LRU sobre una secuencia de referencias a páginas.
-
-    Retorna una lista de pasos (columnas), el total de hits, el total de fallos
-    y el total de reemplazos (fallos con marcos llenos).
-    Cada paso contiene la página referenciada, si fue fallo o hit, si hubo
-    reemplazo, y el estado actual de los marcos (solo en fallos).
-    """
+    # Simula el algoritmo LRU y retorna pasos, hits, fallos y reemplazos
     marcos = []
     ultima_referencia = {}
     pasos = []
@@ -24,6 +9,7 @@ def simular_lru(referencias, cantidad_marcos):
 
     for turno, pagina in enumerate(referencias):
         if pagina in marcos:
+            # Hit: la pagina ya esta en memoria
             hits += 1
             ultima_referencia[pagina] = turno
             pasos.append({
@@ -33,12 +19,14 @@ def simular_lru(referencias, cantidad_marcos):
                 "es_reemplazo": False,
             })
         else:
+            # Fallo: la pagina no esta en memoria
             fallos += 1
 
             if len(marcos) < cantidad_marcos:
                 marcos.insert(0, pagina)
                 hubo_reemplazo = False
             else:
+                # Reemplazo: se saca la victima (la menos reciente)
                 victima = _encontrar_victima(marcos, ultima_referencia, turno)
                 idx = marcos.index(victima)
                 marcos = [pagina] + marcos[:idx] + marcos[idx + 1:]
@@ -59,7 +47,7 @@ def simular_lru(referencias, cantidad_marcos):
 
 
 def _encontrar_victima(marcos, ultima_referencia, turno_actual):
-    """Encuentra la página menos recientemente usada entre los marcos."""
+    # Busca la pagina menos recientemente usada
     mayor_distancia = -1
     victima = None
 
@@ -73,14 +61,7 @@ def _encontrar_victima(marcos, ultima_referencia, turno_actual):
 
 
 def _calcular_distancias(pasos, referencias, cantidad_marcos):
-    """
-    Calcula los subcuadraditos de distancia para cada columna de fallo.
-
-    Para cada fallo (excepto el último), se mide cuántos turnos han pasado
-    desde la última referencia de cada página en el marco, evaluado justo
-    antes del siguiente fallo. Esto muestra visualmente por qué se elige
-    esa víctima.
-    """
+    # Calcula las distancias para los subcuadraditos de cada columna
     columnas_fallo = [p for p in pasos if p["es_fallo"]]
 
     for i, columna in enumerate(columnas_fallo):
@@ -100,7 +81,7 @@ def _calcular_distancias(pasos, referencias, cantidad_marcos):
 
 
 def _buscar_ultima_posicion(referencias, pagina, hasta_turno):
-    """Busca la última posición de una página en la secuencia hasta un turno dado."""
+    # Busca la ultima vez que aparecio la pagina antes de cierto turno
     for j in range(hasta_turno, -1, -1):
         if referencias[j] == pagina:
             return j

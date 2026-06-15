@@ -1,12 +1,4 @@
-"""
-Módulo de renderizado y animación para la tabla LRU.
-
-Se encarga de dibujar paso a paso la tabla de reemplazo de páginas
-sobre un Canvas de Tkinter, con animaciones suaves y visualización
-clara de fallos de página, hits, marcos y subcuadraditos de distancia.
-"""
-
-# Paleta de colores — Estilo Premium Dark & Gold
+# Paleta de colores
 COLORES = {
     "fondo_canvas":      "#1A1F26",
     "borde_celda":       "#C5A880",
@@ -36,7 +28,6 @@ ESPACIO_SECUENCIA = 42
 
 
 class LRURenderer:
-    """Renderiza y anima la simulación LRU en un Canvas de Tkinter."""
 
     def __init__(self, canvas, root):
         self.canvas = canvas
@@ -44,21 +35,11 @@ class LRURenderer:
         self._animacion_id = None
 
     def cancelar_animacion(self):
-        """Cancela cualquier animación en progreso."""
         if self._animacion_id is not None:
             self.root.after_cancel(self._animacion_id)
             self._animacion_id = None
 
     def iniciar_animacion(self, pasos, referencias, cantidad_marcos, al_terminar):
-        """
-        Inicia la animación paso a paso de la simulación LRU.
-
-        Parámetros:
-            pasos: lista de columnas generada por simular_lru
-            referencias: secuencia original de páginas
-            cantidad_marcos: número de marcos de página
-            al_terminar: callback que se llama al finalizar la animación
-        """
         self.cancelar_animacion()
         self.canvas.delete("all")
         self.canvas.configure(bg=COLORES["fondo_canvas"])
@@ -66,7 +47,7 @@ class LRURenderer:
         self._dibujar_etiquetas_laterales(cantidad_marcos)
         self._dibujar_titulo_secuencia(pasos)
 
-        columna_fallo = [0]  # mutable counter
+        columna_fallo = [0]
 
         def animar(paso_idx):
             if paso_idx >= len(pasos):
@@ -84,7 +65,7 @@ class LRURenderer:
 
             self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
-            # Auto-scroll para que se vea el paso actual
+            # Auto-scroll para ver el paso actual
             bbox = self.canvas.bbox("all")
             if bbox:
                 self.canvas.config(scrollregion=bbox)
@@ -99,25 +80,23 @@ class LRURenderer:
         animar(0)
 
     def _dibujar_etiquetas_laterales(self, cantidad_marcos):
-        """Dibuja las etiquetas MRU y LRU a la izquierda de la tabla."""
+        # Etiquetas MRU y LRU a la izquierda
         y_inicio = MARGEN_Y
         y_fin = MARGEN_Y + cantidad_marcos * ALTO_CELDA
 
-        # Etiqueta MRU (arriba)
         self.canvas.create_text(
             40, y_inicio + 15,
             text="MRU", font=("Consolas", 13, "bold"),
             fill=COLORES["etiqueta_mru"], anchor="w"
         )
 
-        # Etiqueta LRU (abajo)
         self.canvas.create_text(
             40, y_fin - 15,
             text="LRU", font=("Consolas", 13, "bold"),
             fill=COLORES["etiqueta_lru"], anchor="w"
         )
 
-        # Flecha decorativa MRU → LRU
+        # Flecha MRU -> LRU
         flecha_x = 50
         self.canvas.create_line(
             flecha_x, y_inicio + 30,
@@ -127,7 +106,6 @@ class LRURenderer:
         )
 
     def _dibujar_titulo_secuencia(self, pasos):
-        """Dibuja un título sutil encima de la secuencia de referencias."""
         self.canvas.create_text(
             MARGEN_X, 15,
             text="Secuencia de Referencias",
@@ -136,12 +114,11 @@ class LRURenderer:
         )
 
     def _dibujar_referencia_superior(self, paso, paso_idx):
-        """Dibuja la referencia de página en la parte superior con indicador visual."""
+        # Dibuja la referencia arriba con circulo rojo (fallo) o linea verde (hit)
         x = MARGEN_X + paso_idx * ESPACIO_SECUENCIA
         y = 45
 
         if paso["es_fallo"]:
-            # Círculo rojo con relleno semitransparente para fallo
             self.canvas.create_oval(
                 x - 16, y - 16, x + 16, y + 16,
                 outline=COLORES["fallo_circulo"], width=2,
@@ -149,7 +126,6 @@ class LRURenderer:
             )
             color_texto = COLORES["fallo_circulo"]
         else:
-            # Subrayado verde para hit
             self.canvas.create_line(
                 x - 12, y + 14, x + 12, y + 14,
                 fill=COLORES["hit_linea"], width=3, capstyle="round"
@@ -163,7 +139,7 @@ class LRURenderer:
             fill=color_texto
         )
 
-        # Mini etiqueta F / H debajo
+        # Mini etiqueta F o H debajo
         y_label = y + 28
         if paso["es_fallo"]:
             self.canvas.create_text(
@@ -171,7 +147,7 @@ class LRURenderer:
                 font=("Consolas", 8, "bold"),
                 fill=COLORES["fallo_circulo"]
             )
-            # Triángulo de reemplazo (solo si los marcos estaban llenos)
+            # Triangulo de reemplazo
             if paso.get("es_reemplazo"):
                 ty = y_label + 12
                 self.canvas.create_polygon(
@@ -187,13 +163,13 @@ class LRURenderer:
             )
 
     def _dibujar_columna_marcos(self, paso, columna_fallo, cantidad_marcos):
-        """Dibuja una columna de marcos con sus valores y subcuadraditos."""
+        # Dibuja una columna de marcos con los valores
         x = MARGEN_X + columna_fallo * ANCHO_CELDA
 
         for fila in range(cantidad_marcos):
             y = MARGEN_Y + fila * ALTO_CELDA
 
-            # Celda con bordes redondeados simulados
+            # Celda
             self.canvas.create_rectangle(
                 x + 1, y + 1,
                 x + ANCHO_CELDA - 1, y + ALTO_CELDA - 1,
@@ -204,7 +180,7 @@ class LRURenderer:
             if fila < len(paso.get("marcos", [])):
                 valor = paso["marcos"][fila]
 
-                # Resaltar la página nueva que acaba de entrar
+                # Resaltar la pagina nueva
                 if fila == 0:
                     self.canvas.create_rectangle(
                         x + 2, y + 2,
@@ -229,7 +205,7 @@ class LRURenderer:
                     self._dibujar_subcuadro(x, y, distancias[fila])
 
     def _dibujar_subcuadro(self, x_celda, y_celda, valor):
-        """Dibuja el subcuadradito de distancia dentro de una celda."""
+        # Dibuja el numerito de distancia en la esquina de la celda
         sub_w = 22
         sub_h = 20
         sx = x_celda + ANCHO_CELDA - sub_w - 1
