@@ -35,7 +35,8 @@ class LRUSimulatorApp:
 
         self.renderer = LRURenderer(self.canvas, self.root)
 
-        # Tooltip para la secuencia de referencias
+        # Tooltips para los campos de entrada
+        self._crear_tooltip(self.entry_marcos, "Nota: Ingrese el número de marcos de páginas (ej: 4)")
         self._crear_tooltip(self.entry_paginas, "Nota: Ingrese los números separados por un espacio (ej: 1 2 3)")
 
     def _configurar_estilos(self):
@@ -288,8 +289,9 @@ class LRUSimulatorApp:
             y = widget.winfo_rooty() + event.y + 15
             tip_window[0] = tw = tk.Toplevel(widget)
             tw.wm_overrideredirect(True)
+            tw.attributes("-topmost", True)
             tw.wm_geometry(f"+{x}+{y}")
-            label = tk.Label(tw, text=texto, bg="#FFFFE0", fg="#000000",
+            label = tk.Label(tw, text=texto, bg="#FFFFE1", fg="#000000",
                              relief="solid", bd=1, font=("Segoe UI", 9),
                              padx=6, pady=4)
             label.pack()
